@@ -67,6 +67,10 @@ def ceroOrMoreAutomaton(automaton, index): # ?
         startState : {'ε' : [automaton.startState, acceptState]}
     }
 
+    transitions.update(automaton.transitions)
+
+    return NFA(startState, acceptState, transitions)
+
 def oneOrMoreAutomaton(automaton, index): # +
     startState = index
     acceptState = index + 1
