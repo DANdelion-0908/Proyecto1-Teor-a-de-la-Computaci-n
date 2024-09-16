@@ -1,6 +1,4 @@
 import graphviz
-import infixToPostfix
-import expressionBalance
 
 class Node:
     def __init__(self, value):
@@ -43,19 +41,4 @@ def createGraph(tree, filename):
             addNodesEdges(node.right, rightCounter)
 
     addNodesEdges(tree, 1)
-    dot.render(f'pdf/{filename}', format='pdf', cleanup=True)
-
-with open("regex.txt", "r", encoding="UTF-8") as file:
-    expressions = file.readlines()
-
-balancedExpressions = expressionBalance.readExpressions(expressions)
-
-for i, expression in enumerate(balancedExpressions):
-    expression = expression.strip()
-    if expression:
-        postfixExpressions = infixToPostfix.infixToPostfix(expression)
-        for postfixExpression in postfixExpressions:
-            syntaxTree = createTree(postfixExpression)
-
-        filename = f"syntaxTree{i+1}.gv"
-        createGraph(syntaxTree, filename)
+    dot.render(f'results/trees/{filename}', format='pdf', cleanup=True)
