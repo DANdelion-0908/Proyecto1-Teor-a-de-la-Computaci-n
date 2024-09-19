@@ -80,8 +80,10 @@ def oneOrMoreAutomaton(automaton, index): # +
 def generateAutomatonFromTree(tree):
     stack = []
     index = 0 
+    alphabet = []
     def postOrder(node):
         nonlocal index
+        nonlocal alphabet
 
         if node.left:
             postOrder(node.left)
@@ -89,6 +91,8 @@ def generateAutomatonFromTree(tree):
             postOrder(node.right)
 
         if node.value.isalnum():
+            if node.value not in alphabet:
+                alphabet.append(node.value)
             nfa = createAutomaton(node.value, index)
             index += 2
             stack.append(nfa)
@@ -125,7 +129,8 @@ def generateAutomatonFromTree(tree):
             stack.append(nfa)
 
     postOrder(tree)
-    return[stack.pop()]
+    automaton = stack.pop()
+    return automaton, alphabet
 
 def createGraph(automaton, filename):
     dot = graphviz.Digraph(comment="Autómata Finito No Determinista")

@@ -13,72 +13,60 @@ class DFA:
     def __str__(self):
         return f'{self.startState}, {self.acceptState}, {self.transitions}'
 
-
 def eClosure(automaton, state):
+    closure = set([state])
+
+    if 'ε' in automaton.transitions[state].keys():
+        sets = automaton.transitions[state]['ε']
+
+    if sets:
+        for element in sets:
+            closure.add(element)
+
+    print(closure)
+
+    return frozenset(closure)
+
+def move(automaton, states, symbol):
     closure = set([])
-    stack = [state]
-
-    while stack:
-        currentState = stack.pop()
-    
-        if currentState != automaton.acceptState and 'ε' in automaton.transitions.get(currentState):
-            for nextState in automaton.transitions[currentState]['ε']:
-                if nextState not in closure:
-                    closure.add(nextState)
-                    stack.append(nextState)
-
-    return closure
-
-def move(automaton, state, symbol):
-    closure = set([])
-    stack = [state]
-
-    while stack:
-        currentState = stack.pop()
-
-        if currentState != automaton.acceptState and symbol in automaton.transitions.get(currentState):
-            for nextState in automaton.transitions[currentState][symbol]:
-                if nextState not in closure:
-                    closure.add(nextState)
-                    stack.append(nextState)
-
-    return closure
-
-
-def getNewStates(automaton):
-    sets = [{automaton.startState}]
-    stack = [{automaton.startState}]
-
     transitions = {}
 
-    while stack:
-        for state in stack.pop():
-            closure = eClosure(automaton, state)
-            if closure:
-                stack.append(closure)
-                sets.append(closure)
+    for state in states:
+        if symbol in automaton.transitions[state].keys():
+            sets = automaton.transitions[state][symbol]
 
-        for state in stack.pop():
-            for symbol in 'abc':
-                moveClosure = move(automaton, state, symbol)
-                if moveClosure:
-                    stack.append(moveClosure)
-                    sets.append(moveClosure)
+            if sets:
+                for element in sets:
+                    closure.add(element)
+    
+    transitions[frozenset(states)] = {symbol: closure}
 
-    for setElement in sets:
-        for state in setElement:
-            if eClosure(automaton, state):
-                transitions[frozenset(setElement)] = {'ε': frozenset(eClosure(automaton, state))}
+    print(symbol, closure)
 
-            for symbol in 'abc':
-                if move(automaton, state, symbol):
-                    if frozenset(setElement) not in transitions.keys():
-                        transitions[frozenset(setElement)] = {symbol: frozenset(move(automaton, state, symbol))}
+    print("MUEVE", transitions)
 
-                    else:
-                        transitions[frozenset(setElement)].update({symbol: frozenset(move(automaton, state, symbol))})
+    return [frozenset(closure), transitions]
 
-    return DFA(frozenset(sets[0]), frozenset(sets[-1]), transitions)
+def getNewStates(automaton, alphabet):
+    statesSet = set([])
+    visitedStates = set([])
+    finalSets = set([])
+    transitions = {}
+
+    initialSet = eClosure(automaton, automaton.startState)
+
+    statesSet.add(initialSet)
+    visitedStates.add(automaton.startState)
+
+    while statesSet.difference(visitedStates) != set():
+        for symbol in alphabet:
+            moveClosure = move(automaton, statesSet, symbol)
+
+            if moveClosure[0] not in statesSet:
+                statesSet.add(moveClosure[0])
+                transitions.update(moveClosure[1])
+   
+    return DFA(initialSet, finalSets, transitions)
 
 def createGraph(automaton, filename):
     dot = graphviz.Digraph(comment="Autómata Finito Determinista")
@@ -86,7 +74,8 @@ def createGraph(automaton, filename):
 
     dot.node(f'{automaton.startState}', shape='rarrow')
 
-    dot.node(f'{automaton.acceptState}', shape='doublecircle')
+    for state in automaton.acceptState:
+        dot.node(f'{state}', shape='doublecircle')
 
     for startState, transitions in automaton.transitions.items():
         for symbol, finalStates in transitions.items():
@@ -108,12 +97,13 @@ for i, expression in enumerate(balancedExpressions):
 
         Treefilename = f"syntaxTree{i+1}"
         automatonFilename = f"nfa{i+1}"
+        automatonDFilename = f"dfa{i+1}"
 
         ct.createGraph(syntaxTree, Treefilename)
 
-        nonDeterministicAutomaton = nfa.generateAutomatonFromTree(syntaxTree)[0]
+        nonDeterministicAutomaton, alphabet = nfa.generateAutomatonFromTree(syntaxTree)
         nfa.createGraph(nonDeterministicAutomaton, automatonFilename)
 
-        deterministicAutomaton = getNewStates(nonDeterministicAutomaton)
-        print(deterministicAutomaton)
-        createGraph(deterministicAutomaton, automatonFilename)
+        # deterministicAutomaton = getNewStates(nonDeterministicAutomaton, alphabet)
+        # print(deterministicAutomaton)
+        # createGraph(deterministicAutomaton, automatonDFilename)
