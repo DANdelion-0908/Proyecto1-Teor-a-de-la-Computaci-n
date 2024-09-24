@@ -4,6 +4,7 @@ import createTree as ct
 import createNFA as nfa
 import createDFA as dfa
 import simulateNFA as simNFA
+import simulateDFA as simDFA
 
 with open("regex.txt", "r", encoding="UTF-8") as file:
     expressions = file.readlines()
@@ -37,6 +38,6 @@ while keyLoop:
     deterministicAutomaton = dfa.getNewStates(nonDeterministicAutomaton, alphabet)
     dfa.createGraph(deterministicAutomaton, automatonDFilename)
     print("Autómata Finito Determinista creado. \n")
-    print("\n\n")
+    print(simDFA.chainSimulation(chain, deterministicAutomaton, alphabet), postfixExpression, "\n\n")
 
     input("Presiona ENTER para continuar.")
