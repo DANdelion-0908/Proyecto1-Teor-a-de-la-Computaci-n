@@ -3,29 +3,40 @@ import expressionBalance
 import createTree as ct
 import createNFA as nfa
 import createDFA as dfa
+import simulateNFA as simNFA
 
 with open("regex.txt", "r", encoding="UTF-8") as file:
     expressions = file.readlines()
 
 balancedExpressions = expressionBalance.readExpressions(expressions)
 
-for i, expression in enumerate(balancedExpressions):
-    expression = expression.strip()
-    if expression:
-        postfixExpressions = infixToPostfix.infixToPostfix(expression)
-        for postfixExpression in postfixExpressions:
-            syntaxTree = ct.createTree(postfixExpression)
+keyLoop = True
 
-        Treefilename = f"syntaxTree{i + 1}"
-        automatonFilename = f"nfa{i + 1}"
-        automatonDFilename = f"dfa{i + 1}"
+while keyLoop:
+    for i, expression in enumerate(balancedExpressions):
+        print(f"{i + 1}. {expression}")
+            
+    option = input("Ingresa el número con la expresión a operar: ")
+    chain = input("Ingresa la cadena para realizar la simulación: ")
 
-        ct.createGraph(syntaxTree, Treefilename)
+    postfixExpressions = infixToPostfix.infixToPostfix(balancedExpressions[int(option) - 1].strip())
+    for postfixExpression in postfixExpressions:
+        syntaxTree = ct.createTree(postfixExpression)
 
-        nonDeterministicAutomaton, alphabet = nfa.generateAutomatonFromTree(syntaxTree)
-        nfa.createGraph(nonDeterministicAutomaton, automatonFilename)
-        print("Autómata Finito No Determinista creado. \n\n")
+    Treefilename = f"syntaxTree"
+    automatonFilename = f"nfa"
+    automatonDFilename = f"dfa"
 
-        deterministicAutomaton = dfa.getNewStates(nonDeterministicAutomaton, alphabet)
-        dfa.createGraph(deterministicAutomaton, automatonDFilename)
-        print("Autómata Finito Determinista creado.")
+    ct.createGraph(syntaxTree, Treefilename)
+
+    nonDeterministicAutomaton, alphabet = nfa.generateAutomatonFromTree(syntaxTree)
+    nfa.createGraph(nonDeterministicAutomaton, automatonFilename)
+    print("Autómata Finito No Determinista creado. \n")
+    print(simNFA.chainSimulation(chain, nonDeterministicAutomaton, alphabet), postfixExpression, "\n\n")
+
+    deterministicAutomaton = dfa.getNewStates(nonDeterministicAutomaton, alphabet)
+    dfa.createGraph(deterministicAutomaton, automatonDFilename)
+    print("Autómata Finito Determinista creado. \n")
+    print("\n\n")
+
+    input("Presiona ENTER para continuar.")
